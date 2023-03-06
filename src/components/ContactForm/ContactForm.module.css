@@ -1,0 +1,12 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  max-width: 300px;
+  gap: 10px;
+  border: 1px solid black;
+  padding: 15px;
+}
+
+.formBtn {
+  width: 100px;
+}
