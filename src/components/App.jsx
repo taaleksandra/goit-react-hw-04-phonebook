@@ -8,9 +8,10 @@ import { ContactList } from './ContactList/ContactList';
 import { Filter } from './Filter/Filter';
 
 export const App = () => {
-  const [contacts, setContacts] = useState([]);
+  const [contacts, setContacts] = useState(
+    () => JSON.parse(localStorage.getItem('contacts')) || []
+  );
   const [filter, setFilter] = useState('');
-  const ref = useRef(false);
 
   const handleAddContact = value => {
     const existingContact = contacts.find(
@@ -34,22 +35,8 @@ export const App = () => {
   };
 
   useEffect(() => {
-    const contactsList = window.localStorage.getItem('contacts');
-    if (!contactsList) return;
-    try {
-      setContacts(JSON.parse(contactsList));
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
-
-  useEffect(() => {
     const contactsStringified = JSON.stringify(contacts);
-    if (ref.current) {
-      window.localStorage.setItem('contacts', contactsStringified);
-    } else {
-      ref.current = true;
-    }
+    window.localStorage.setItem('contacts', contactsStringified);
   }, [contacts]);
 
   return (
