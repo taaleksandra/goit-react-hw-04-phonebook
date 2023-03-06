@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 
 import css from '../components/App.module.css';
@@ -7,72 +7,62 @@ import { ContactForm } from './ContactForm/ContactForm';
 import { ContactList } from './ContactList/ContactList';
 import { Filter } from './Filter/Filter';
 
-export class App extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-    name: '',
-    number: '',
-  };
+export const App = () => {
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState('');
+  const ref = useRef(false);
 
-  addContact = value => {
-    const test = this.state.contacts.find(
+  const handleAddContact = value => {
+    const existingContact = contacts.find(
       contact => contact.name === value.name
     );
-
-    if (test) {
-      alert(`${value.name} id already in contacts`);
+    if (existingContact) {
+      alert(`${value.name} is already in contacts`);
       return;
     }
-    this.setState(prev => {
-      return {
-        contacts: [...prev.contacts, value],
-      };
-    });
+
+    setContacts(contacts.concat(value));
   };
 
-  findContact = value => {
-    this.setState({ filter: value });
+  const handleFindContact = value => {
+    setFilter(value);
   };
 
-  deleteContact = value => {
-    this.setState(prev => ({
-      contacts: prev.contacts.filter(contact => contact.id !== value),
-    }));
+  const handleDeleteContact = value => {
+    const newList = contacts.filter(contact => contact.id !== value);
+    setContacts(newList);
   };
 
-  componentDidMount() {
+  useEffect(() => {
     const contactsList = window.localStorage.getItem('contacts');
     if (!contactsList) return;
-
     try {
-      this.setState({
-        contacts: JSON.parse(contactsList),
-      });
+      setContacts(JSON.parse(contactsList));
     } catch (err) {
       console.error(err);
     }
-  }
+  }, []);
 
-  componentDidUpdate(prevProps, prevState) {
-    const contactsStringified = JSON.stringify(this.state.contacts);
-    window.localStorage.setItem('contacts', contactsStringified);
-  }
+  useEffect(() => {
+    const contactsStringified = JSON.stringify(contacts);
+    if (ref.current) {
+      window.localStorage.setItem('contacts', contactsStringified);
+    } else {
+      ref.current = true;
+    }
+  }, [contacts]);
 
-  render() {
-    const { contacts, filter } = this.state;
-    return (
-      <div className={clsx(css.phonebook)}>
-        <h1>Phonebook</h1>
-        <ContactForm onSubmit={this.addContact} />
-        <h1>Contacts</h1>
-        <Filter onChange={this.findContact} />
-        <ContactList
-          contacts={contacts}
-          filter={filter}
-          deleteContact={this.deleteContact}
-        />
-      </div>
-    );
-  }
-}
+  return (
+    <div className={clsx(css.phonebook)}>
+      <h1>Phonebook</h1>
+      <ContactForm onAdd={handleAddContact} />
+      <h1>Contacts</h1>
+      <Filter onFind={handleFindContact} />
+      <ContactList
+        contacts={contacts}
+        filter={filter}
+        onDeleteContact={handleDeleteContact}
+      />
+    </div>
+  );
+};
